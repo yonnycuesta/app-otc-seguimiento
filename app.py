@@ -312,7 +312,7 @@ def main():
                         len(
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
-                                & (df_filtered["Estado"] == "En Proceso")
+                                & (df_filtered["Estado"] == "En proceso")
                             ]
                         )
                         for tech in selected_technicians
