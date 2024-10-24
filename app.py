@@ -259,7 +259,7 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
 
             st.subheader("Estadísticas del día")
-            col1, col2, col3, col4, col5 = st.columns(5)
+            col1, col2, col3, col4 = st.columns(4)
 
             with col1:
                 st.metric("Total de órdenes", len(df_filtered))
@@ -278,12 +278,12 @@ def main():
                 )
                 st.metric("Órdenes en proceso", in_progress)
 
-            with col5:
-                earliest = df_filtered["Timestamp"].min()
-                latest = df_filtered["Timestamp"].max()
-                if pd.notna(earliest) and pd.notna(latest):
-                    avg_time = (latest - earliest).total_seconds() / 3600
-                    st.metric("Tiempo total de operación", f"{avg_time:.2f} hrs")
+            # with col5:
+            #     earliest = df_filtered["Timestamp"].min()
+            #     latest = df_filtered["Timestamp"].max()
+            #     if pd.notna(earliest) and pd.notna(latest):
+            #         avg_time = (latest - earliest).total_seconds() / 3600
+            #         st.metric("Tiempo total de operación", f"{avg_time:.2f} hrs")
 
             st.subheader("Resumen por técnico")
             summary_df = pd.DataFrame(
