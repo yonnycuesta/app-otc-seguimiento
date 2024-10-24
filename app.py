@@ -9,7 +9,11 @@ import Sytex
 
 cliente_description = r"1. Nombre Cliente:(.*?)\n"
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Seguimiento OTC |Plataforma para realizar un seguimiento detallado de las Órdenes de Trabajo de Campo (OTCs), mostrando en tiempo real el estado de cada solicitud.",
+    page_icon="images/logue.png",
+    layout="wide",
+)
 
 
 def seg_Descrip(texto):
@@ -71,7 +75,7 @@ def generar_dataframe(fecha):
             tecnico = tarea_actual["assigned_staff"]["name"]
         else:
             tecnico = "Sin asignar"
-        
+
         # Sitio
         if tarea_actual["sites"][0]["name"] != None:
             sitio = tarea_actual["sites"][0]["name"]
@@ -102,7 +106,7 @@ def generar_dataframe(fecha):
                 "Timestamp": ultimo_timestamp,
                 "Cliente": cliente,
                 "Evento": evento,
-                "Ubicación": sitio
+                "Ubicación": sitio,
             }
         )
 
@@ -135,7 +139,7 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
 
     df_filtered = df_filtered.sort_values("Codigo")
     estados_mostrados = set()
-    
+
     for idx, row in df_filtered.iterrows():
         task_name = f"{row['Tecnico asignado']} - OTC {row['Codigo']}"
 
@@ -154,7 +158,6 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
                 f"Estado: {row['Estado']}<br>"
                 f"Hora: {row['Timestamp'].strftime('%H:%M:%S')}<br>"
                 f"Ubicación: {row['Ubicación']}"
-                
             )
 
             # Mostrar en la leyenda solo si es la primera vez que aparece este estado
@@ -267,15 +270,13 @@ def main():
             with col2:
                 completed = len(df_filtered[df_filtered["Estado"] == "Asignada"])
                 st.metric("Órdenes asignadas", completed)
-                
+
             with col3:
                 completed = len(df_filtered[df_filtered["Estado"] == "Completada"])
                 st.metric("Órdenes completadas", completed)
 
             with col4:
-                in_progress = len(
-                    df_filtered[df_filtered["Estado"] == "En proceso"]
-                )
+                in_progress = len(df_filtered[df_filtered["Estado"] == "En proceso"])
                 st.metric("Órdenes en proceso", in_progress)
 
             # with col5:
@@ -289,15 +290,11 @@ def main():
             summary_df = pd.DataFrame(
                 {
                     "Técnico": selected_technicians,
-                    
                     "Asignadas": [
                         len(
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
-                                & (
-                                    df_filtered["Estado"] == "Asignada"
-                                    
-                        )
+                                & (df_filtered["Estado"] == "Asignada")
                             ]
                         )
                         for tech in selected_technicians
@@ -306,22 +303,16 @@ def main():
                         len(
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
-                                & (
-                                    df_filtered["Estado"] == "en camino"
-                                    
-                        )
+                                & (df_filtered["Estado"] == "en camino")
                             ]
                         )
                         for tech in selected_technicians
                     ],
-                      "En Proceso": [
+                    "En Proceso": [
                         len(
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
-                                & (
-                                    df_filtered["Estado"] == "En Proceso"
-                                    
-                        )
+                                & (df_filtered["Estado"] == "En Proceso")
                             ]
                         )
                         for tech in selected_technicians
@@ -330,10 +321,7 @@ def main():
                         len(
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
-                                & (
-                                    df_filtered["Estado"] == "Devuelta"
-                                    
-                        )
+                                & (df_filtered["Estado"] == "Devuelta")
                             ]
                         )
                         for tech in selected_technicians
