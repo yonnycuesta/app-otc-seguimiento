@@ -213,7 +213,7 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
 
 
 def main():
-    st.title("Seguimiento de OTCs")
+    st.title("Seguimiento de OTCs - ICE")
 
     if "df" not in st.session_state:
         st.session_state.df = None
