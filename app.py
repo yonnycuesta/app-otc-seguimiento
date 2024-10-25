@@ -1,7 +1,7 @@
 import re
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 import concurrent.futures
 import plotly.graph_objects as go
 
@@ -41,7 +41,7 @@ def converhora(fecha_hora_original):
 
 def FindTask_desde_hasta(fecha):
     fecha_str = fecha.strftime("%Y-%m-%d")
-    Taskurl = f"https://app.sytex.io/api/task/?plan_date_duration={fecha_str}&project=144528&task_template=741&status_step_name=2898&status_step_name=1249&status_step_name=4014&status_step_name=1246&status_step_name=1300&limit=4000"
+    Taskurl = f"https://app.sytex.io/api/task/?plan_date_duration={fecha_str}&project=144528&task_template=741&status_step_name=2898&status_step_name=1249&status_step_name=4014&status_step_name=1246&status_step_name=1300&status_step_name=1245&limit=10000"
     return Sytex.RunApi(Taskurl)
 
 
@@ -126,6 +126,7 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
         "En proceso": "#FFD700",
         "Devuelta": "#FF4444",
         "Completada": "#32CD32",
+        "Aberta": "#B7B7B7",
     }
 
     fig = go.Figure()
@@ -150,13 +151,16 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
             shown_start = max(row["Timestamp"], start_time)
             shown_end = min(end_timestamp, end_time)
 
+            # Hora Tica
+            hour_tica = row["Timestamp"] - timedelta(hours=1)
             # Crear el texto para el hover
             hover_text = (
                 f"OTC: {row['Codigo']}<br>"
                 f"Cliente: {row['Cliente']}<br>"
                 f"Evento: {row['Evento']}<br>"
                 f"Estado: {row['Estado']}<br>"
-                f"Hora: {row['Timestamp'].strftime('%H:%M:%S')}<br>"
+                f"Hora COL: {row['Timestamp'].strftime('%H:%M:%S')}<br>"
+                f"Hora TICA: {hour_tica.strftime('%H:%M:%S')}<br>"
                 f"Ubicación: {row['Ubicación']}"
             )
 
@@ -182,7 +186,8 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
                 )
             )
 
-    current_time = datetime.now()
+    current_time = datetime.now() - timedelta(hours=5)
+
     if start_time <= current_time <= end_time:
         fig.add_vline(
             x=(current_time - start_time).total_seconds() / 3600,
@@ -234,7 +239,14 @@ def main():
     if st.session_state.df is not None:
         df = st.session_state.df
 
-        all_states = ["Asignada", "en camino", "En proceso", "Devuelta", "Completada"]
+        all_states = [
+            "Asignada",
+            "en camino",
+            "En proceso",
+            "Devuelta",
+            "Completada",
+            "Abierta",
+        ]
         selected_states = st.sidebar.multiselect(
             "Filtrar por estados", all_states, default=all_states
         )
@@ -331,6 +343,15 @@ def main():
                             df_filtered[
                                 (df_filtered["Tecnico asignado"] == tech)
                                 & (df_filtered["Estado"] == "Completada")
+                            ]
+                        )
+                        for tech in selected_technicians
+                    ],
+                    "Abiertas": [
+                        len(
+                            df_filtered[
+                                (df_filtered["Tecnico asignado"] == tech)
+                                & (df_filtered["Estado"] == "Abierta")
                             ]
                         )
                         for tech in selected_technicians
