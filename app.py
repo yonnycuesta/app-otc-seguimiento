@@ -221,7 +221,7 @@ def create_gantt_figure(df_filtered, fecha_seleccionada):
 
 
 def main():
-    st.title("Seguimiento de OTCs - ICE")
+    st.subheader("Seguimiento de OTCs - ICE")
 
     if "df" not in st.session_state:
         st.session_state.df = None
@@ -274,22 +274,26 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
 
             st.subheader("Estadísticas del día")
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3, col4, col5 = st.columns(5)
 
             with col1:
                 st.metric("Total de órdenes", len(df_filtered))
 
             with col2:
                 completed = len(df_filtered[df_filtered["Estado"] == "Asignada"])
-                st.metric("Órdenes asignadas", completed)
+                st.metric("ASIGNADAS", completed)
 
             with col3:
                 completed = len(df_filtered[df_filtered["Estado"] == "Completada"])
-                st.metric("Órdenes completadas", completed)
+                st.metric("COMPLETADAS", completed)
 
             with col4:
                 in_progress = len(df_filtered[df_filtered["Estado"] == "En proceso"])
-                st.metric("Órdenes en proceso", in_progress)
+                st.metric("EN PROCESO", in_progress)
+                
+            with col5:
+                returned = len(df_filtered[df_filtered["Estado"] == "Devuelta"])
+                st.metric("DEVUELTA", returned)
 
             # with col5:
             #     earliest = df_filtered["Timestamp"].min()
@@ -363,6 +367,43 @@ def main():
                 }
             )
             st.dataframe(summary_df, hide_index=True)
+            
+            # Nueva sección: Tabla dinámica basada en df_filtered y el período de 42 horas
+            st.subheader("Resumen General del Día")
+            current_time = datetime.now() - timedelta(hours=5)  # Ajuste a zona horaria COL
+
+            # Filtrar tareas por estado y calcular si están prescritas (más de 42 horas desde Timestamp)
+            def is_prescribed(timestamp):
+                if pd.isna(timestamp):
+                    return False
+                time_diff = current_time - timestamp
+                return time_diff > timedelta(hours=42)
+
+            # Contar tareas por estado y si están prescritas
+            atendidas = df_filtered[df_filtered["Estado"] == "Completada"]
+            devueltas = df_filtered[df_filtered["Estado"] == "Devuelta"]
+            asignadas = df_filtered[df_filtered["Estado"] == "Asignada"]
+
+            resumen_dia = pd.DataFrame({
+                "Estado": ["Completadas", "Devueltas", "Asignadas"],
+                "Completadas": [
+                    len(atendidas[~atendidas["Timestamp"].apply(is_prescribed)]),
+                    len(devueltas[~devueltas["Timestamp"].apply(is_prescribed)]),
+                    len(asignadas[~asignadas["Timestamp"].apply(is_prescribed)])
+                ],
+                "Prescritas": [
+                    len(atendidas[atendidas["Timestamp"].apply(is_prescribed)]),
+                    len(devueltas[devueltas["Timestamp"].apply(is_prescribed)]),
+                    len(asignadas[asignadas["Timestamp"].apply(is_prescribed)])
+                ],
+                "Total": [
+                    len(atendidas),
+                    len(devueltas),
+                    len(asignadas)
+                ]
+            })
+            st.dataframe(resumen_dia, hide_index=True)
+
 
         else:
             st.warning("No hay datos para mostrar con los filtros seleccionados.")
